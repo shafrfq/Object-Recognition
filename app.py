@@ -11,16 +11,16 @@ from streamlit_webrtc import webrtc_streamer, VideoTransformerBase, RTCConfigura
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Fungsi untuk mengunduh file dari Google Drive
+# Function to download file from Google Drive
 def download_file_from_google_drive(file_id, output_path):
-    url = f"https://drive.google.com/drive/folders/1oUMcyC8aEgJCNY428P7Tdtg7pzDiTqnB?usp=drive_link={1oUMcyC8aEgJCNY428P7Tdtg7pzDiTqnB}&export=download"
+    url = f"https://drive.google.com/uc?export=download&id={file_id}"
     session = requests.Session()
     response = session.get(url, stream=True)
     
     # Get the confirmation token from cookies
     for key, value in response.cookies.items():
         if key.startswith("download_warning"):
-            url = f"https://drive.google.com/drive/folders/1oUMcyC8aEgJCNY428P7Tdtg7pzDiTqnB?usp=drive_link=download&id={1oUMcyC8aEgJCNY428P7Tdtg7pzDiTqnB}&confirm={1oUMcyC8aEgJCNY428P7Tdtg7pzDiTqnB}"
+            url = f"https://drive.google.com/uc?export=download&id={file_id}&confirm={value}"
             response = session.get(url, stream=True)
             break
 
@@ -29,14 +29,14 @@ def download_file_from_google_drive(file_id, output_path):
             if chunk:
                 f.write(chunk)
 
-# Mengunduh model YOLOv3
+# Download YOLOv3 model
 @st.cache_resource
 def load_yolo():
     os.makedirs('yolov3', exist_ok=True)
     # Replace 'YOUR_FILE_ID' with actual Google Drive file IDs
-    download_file_from_google_drive('https://drive.google.com/file/d/1-Z_hwylsqXf86t9a8CjvfRgHDs_B_7eh/view?usp=drive_link', 'yolov3/yolov3.weights')
-    download_file_from_google_drive('https://drive.google.com/file/d/108kFZ9ltANJW7He-Kujzn7f1FYerf2qA/view?usp=drive_link', 'yolov3/yolov3_custom.cfg')
-    download_file_from_google_drive('https://drive.google.com/file/d/1TswYJ6sDv4FUH4TZR8pfifVI6SPjuOyv/view?usp=drive_link', 'yolov3/obj.names')
+    download_file_from_google_drive('1-Z_hwylsqXf86t9a8CjvfRgHDs_B_7eh', 'yolov3/yolov3.weights')
+    download_file_from_google_drive('108kFZ9ltANJW7He-Kujzn7f1FYerf2qA', 'yolov3/yolov3_custom.cfg')
+    download_file_from_google_drive('1TswYJ6sDv4FUH4TZR8pfifVI6SPjuOyv', 'yolov3/obj.names')
 
     net = cv2.dnn.readNet('yolov3/yolov3.weights', 'yolov3/yolov3_custom.cfg')
     with open('yolov3/obj.names', 'r') as f:
@@ -47,8 +47,7 @@ def load_yolo():
 
     return net, classes, output_layers
 
-
-# Fungsi untuk deteksi objek
+# Function for object detection
 def detect_objects(net, classes, output_layers, image, allowed_labels):
     height, width, channels = image.shape
     blob = cv2.dnn.blobFromImage(image, 0.00392, (416, 416), (0, 0, 0), True, crop=False)
@@ -82,14 +81,14 @@ def detect_objects(net, classes, output_layers, image, allowed_labels):
         if i in indexes:
             x, y, w, h = boxes[i]
             label = f"{classes[class_ids[i]]} {confidences[i]*100:.2f}%"
-            color = (0, 255, 0)  # Hijau untuk bounding box
-            text_color = (255, 255, 255)  # Putih untuk teks
+            color = (0, 255, 0)  # Green for bounding box
+            text_color = (255, 255, 255)  # White for text
             cv2.rectangle(image, (x, y), (x + w, y + h), color, 2)
             cv2.putText(image, label, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, text_color, 2)
 
     return image
 
-# Fungsi untuk deteksi objek di video
+# Function for object detection in video
 def detect_video(net, classes, output_layers, video_path, allowed_labels):
     cap = cv2.VideoCapture(video_path)
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
@@ -120,7 +119,7 @@ class YOLOv3VideoTransformer(VideoTransformerBase):
         detected_image = detect_objects(self.net, self.classes, self.output_layers, image, allowed_labels)
         return detected_image
 
-# Fungsi utama untuk aplikasi Streamlit
+# Main function for Streamlit app
 def main():
     st.title("Object Detection using YOLOv3")
     st.write("Upload an image, video, or use your webcam for object detection")
@@ -142,7 +141,7 @@ def main():
                 detected_image = detect_objects(net, classes, output_layers, image, allowed_labels)
                 st.image(detected_image, channels="BGR", caption='Detected Image.', use_column_width=True)
 
-                # Opsi unduh gambar hasil deteksi
+                # Option to download the detected image
                 is_success, buffer = cv2.imencode(".jpg", detected_image)
                 if is_success:
                     st.download_button(
@@ -152,7 +151,7 @@ def main():
                         mime="image/jpeg"
                     )
 
-                # Opsi kembali ke tampilan awal
+                # Option to go back to start
                 if st.button("Back to Start"):
                     st.experimental_rerun()
 
@@ -175,7 +174,7 @@ def main():
                         mime="video/mp4"
                     )
 
-                # Opsi kembali ke tampilan awal
+                # Option to go back to start
                 if st.button("Back to Start"):
                     st.experimental_rerun()
 
@@ -204,4 +203,5 @@ def main():
         if st.button("Back to Start"):
             st.experimental_rerun()
 
-if __name__ == __main
+if __name__ == "__main__":
+    main()
