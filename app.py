@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 # Fungsi untuk mengunduh file dari Google Drive
 def download_file_from_google_drive(file_id, output_path):
-    url = f"https://drive.google.com/drive/folders/1oUMcyC8aEgJCNY428P7Tdtg7pzDiTqnB?usp=drive_link={}&export=download"
+    url = f"https://drive.google.com/drive/folders/1oUMcyC8aEgJCNY428P7Tdtg7pzDiTqnB?usp=drive_link={1oUMcyC8aEgJCNY428P7Tdtg7pzDiTqnB}&export=download"
     session = requests.Session()
     response = session.get(url, stream=True)
     
