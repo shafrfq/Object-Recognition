@@ -1,5 +1,6 @@
 streamlit
-opencv-python-headless
+opencv-python==4.5.5
+opencv-python-headless==4.5.5
 numpy
 requests
 streamlit-webrtc
