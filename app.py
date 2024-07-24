@@ -13,14 +13,14 @@ logger = logging.getLogger(__name__)
 
 # Fungsi untuk mengunduh file dari Google Drive
 def download_file_from_google_drive(file_id, output_path):
-    url = f"https://drive.google.com/uc?id={file_id}&export=download"
+    url = f"https://drive.google.com/drive/folders/1oUMcyC8aEgJCNY428P7Tdtg7pzDiTqnB?usp=drive_link={}&export=download"
     session = requests.Session()
     response = session.get(url, stream=True)
     
     # Get the confirmation token from cookies
     for key, value in response.cookies.items():
         if key.startswith("download_warning"):
-            url = f"https://drive.google.com/uc?export=download&id={file_id}&confirm={value}"
+            url = f"https://drive.google.com/drive/folders/1oUMcyC8aEgJCNY428P7Tdtg7pzDiTqnB?usp=drive_link=download&id={1oUMcyC8aEgJCNY428P7Tdtg7pzDiTqnB}&confirm={1oUMcyC8aEgJCNY428P7Tdtg7pzDiTqnB}"
             response = session.get(url, stream=True)
             break
 
@@ -34,9 +34,9 @@ def download_file_from_google_drive(file_id, output_path):
 def load_yolo():
     os.makedirs('yolov3', exist_ok=True)
     # Replace 'YOUR_FILE_ID' with actual Google Drive file IDs
-    download_file_from_google_drive('YOUR_YOLOV3_WEIGHTS_FILE_ID', 'yolov3/yolov3.weights')
-    download_file_from_google_drive('YOUR_YOLOV3_CFG_FILE_ID', 'yolov3/yolov3_custom.cfg')
-    download_file_from_google_drive('YOUR_OBJ_NAMES_FILE_ID', 'yolov3/obj.names')
+    download_file_from_google_drive('https://drive.google.com/file/d/1-Z_hwylsqXf86t9a8CjvfRgHDs_B_7eh/view?usp=drive_link', 'yolov3/yolov3.weights')
+    download_file_from_google_drive('https://drive.google.com/file/d/108kFZ9ltANJW7He-Kujzn7f1FYerf2qA/view?usp=drive_link', 'yolov3/yolov3_custom.cfg')
+    download_file_from_google_drive('https://drive.google.com/file/d/1TswYJ6sDv4FUH4TZR8pfifVI6SPjuOyv/view?usp=drive_link', 'yolov3/obj.names')
 
     net = cv2.dnn.readNet('yolov3/yolov3.weights', 'yolov3/yolov3_custom.cfg')
     with open('yolov3/obj.names', 'r') as f:
@@ -47,8 +47,6 @@ def load_yolo():
 
     return net, classes, output_layers
 
-# Definisikan subset label yang diizinkan
-allowed_labels = {"person", "car", "motorbike", "bus", "truck", "bicycle", "traffic light", "parking meter"} 
 
 # Fungsi untuk deteksi objek
 def detect_objects(net, classes, output_layers, image, allowed_labels):
