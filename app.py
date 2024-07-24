@@ -33,12 +33,27 @@ def download_file_from_google_drive(file_id, output_path):
 @st.cache_resource
 def load_yolo():
     os.makedirs('yolov3', exist_ok=True)
-    # Replace 'YOUR_FILE_ID' with actual Google Drive file IDs
-    download_file_from_google_drive('1-Z_hwylsqXf86t9a8CjvfRgHDs_B_7eh', 'yolov3/yolov3.weights')
-    download_file_from_google_drive('108kFZ9ltANJW7He-Kujzn7f1FYerf2qA', 'yolov3/yolov3_custom.cfg')
-    download_file_from_google_drive('1TswYJ6sDv4FUH4TZR8pfifVI6SPjuOyv', 'yolov3/obj.names')
+    print("Directory contents before downloading:")
+    print(os.listdir('yolov3'))
 
-    net = cv2.dnn.readNet('yolov3/yolov3.weights', 'yolov3/yolov3_custom.cfg')
+    if not os.path.exists('yolov3/yolov3.weights'):
+        download_file_from_google_drive('1-Z_hwylsqXf86t9a8CjvfRgHDs_B_7eh', 'yolov3/yolov3.weights')
+    
+    if not os.path.exists('yolov3/yolov3_custom.cfg'):
+        download_file_from_google_drive('108kFZ9ltANJW7He-Kujzn7f1FYerf2qA', 'yolov3/yolov3_custom.cfg')
+    
+    if not os.path.exists('yolov3/obj.names'):
+        download_file_from_google_drive('1TswYJ6sDv4FUH4TZR8pfifVI6SPjuOyv', 'yolov3/obj.names')
+
+    print("Directory contents after downloading:")
+    print(os.listdir('yolov3'))
+
+    try:
+        net = cv2.dnn.readNet('yolov3/yolov3.weights', 'yolov3/yolov3_custom.cfg')
+    except cv2.error as e:
+        st.error(f"Failed to load YOLO model: {str(e)}")
+        return None, None, None
+    
     with open('yolov3/obj.names', 'r') as f:
         classes = [line.strip() for line in f.readlines()]
 
