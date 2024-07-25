@@ -4,20 +4,26 @@ import numpy as np
 import os
 import streamlit as st
 import tempfile
-import subprocess
 
-# Fungsi untuk mengunduh file dari Google Drive menggunakan link unduhan langsung
-def download_from_google_drive(drive_url, destination):
+def download_from_google_drive(drive_url, destination_dir):
     try:
         response = requests.get(drive_url, stream=True)
         if response.status_code == 200:
-            with open(destination, 'wb') as file:
+            filename = os.path.basename(drive_url.split("?")[0])
+            filepath = os.path.join(destination_dir, filename)
+            
+            # Cek apakah direktori sudah ada, buat jika belum
+            os.makedirs(destination_dir, exist_ok=True)
+            
+            with open(filepath, 'wb') as file:
                 for chunk in response.iter_content(chunk_size=8192):
                     file.write(chunk)
+            return filepath
         else:
             st.error(f"Gagal mengunduh file: {response.reason}")
     except Exception as e:
         st.error(f"Error: {str(e)}")
+        return None
 
 # Fungsi untuk mendeteksi objek menggunakan Darknet
 def detect_objects_with_darknet(image_path, config_path, weights_path, data_file):
