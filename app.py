@@ -14,7 +14,7 @@ def download_from_google_drive(drive_url, destination):
             for chunk in response.iter_content(chunk_size=8192):
                 file.write(chunk)
     else:
-        st.error("Gagal mengunduh file")
+        st.error("Gagal mengunduh file: " + response.reason)
 
 # Fungsi untuk mendeteksi objek menggunakan Darknet
 def detect_objects_with_darknet(image_path, config_path, weights_path, data_file):
@@ -37,9 +37,9 @@ def main():
     st.write("Unggah gambar untuk mendeteksi objek menggunakan Darknet")
 
     # Link unduhan langsung
-    cfg_drive_url = 'https://drive.google.com/file/d/108kFZ9ltANJW7He-Kujzn7f1FYerf2qA/view?usp=drive_link'
-    weights_drive_url = 'https://drive.google.com/file/d/1-Z_hwylsqXf86t9a8CjvfRgHDs_B_7eh/view?usp=drive_link'
-    data_drive_url = 'https://drive.google.com/file/d/1iEDj2biLlviApMcAhPIUbcKXFqEHp1_o/view?usp=drive_link'
+    cfg_drive_url = 'https://drive.google.com/uc?export=download&id=108kFZ9ltANJW7He-Kujzn7f1FYerf2qA'
+    weights_drive_url = 'https://drive.google.com/uc?export=download&id=1-Z_hwylsqXf86t9a8CjvfRgHDs_B_7eh'
+    data_drive_url = 'https://drive.google.com/uc?export=download&id=1iEDj2biLlviApMcAhPIUbcKXFqEHp1_o'
 
     # Lokasi file yang akan diunduh
     cfg_path = 'yolov3_custom.cfg'
