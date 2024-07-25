@@ -6,6 +6,9 @@ import tempfile
 import subprocess
 import gdown
 
+import os
+os.system('python -m pip install --upgrade pip')
+
 # Fungsi untuk mengunduh file dari Google Drive
 def download_from_google_drive(file_id, destination):
     url = f"https://drive.google.com/uc?id={file_id}"
