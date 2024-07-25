@@ -1,222 +1,69 @@
-import streamlit as st
 import cv2
 import numpy as np
 import os
+import streamlit as st
 import tempfile
-import requests
-import logging
-from streamlit_webrtc import webrtc_streamer, VideoTransformerBase, RTCConfiguration
+import subprocess
+import gdown
 
-# Set up logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Fungsi untuk mengunduh file dari Google Drive
+def download_from_google_drive(file_id, destination):
+    url = f"https://drive.google.com/uc?id={file_id}"
+    gdown.download(url, destination, quiet=False)
 
-# Function to download file from Google Drive
-def download_file_from_google_drive(file_id, output_path):
-    url = f"https://drive.google.com/uc?export=download&id={file_id}"
-    session = requests.Session()
-    response = session.get(url, stream=True)
+# Fungsi untuk mendeteksi objek menggunakan Darknet
+def detect_objects_with_darknet(image_path, config_path, weights_path, data_file):
+    # Simpan hasil deteksi dalam file output.txt
+    output_file = 'output.txt'
+    command = f"./darknet detector test {data_file} {config_path} {weights_path} {image_path} -dont_show -out {output_file}"
     
-    # Get the confirmation token from cookies
-    for key, value in response.cookies.items():
-        if key.startswith("download_warning"):
-            url = f"https://drive.google.com/uc?export=download&id={file_id}&confirm={value}"
-            response = session.get(url, stream=True)
-            break
+    # Jalankan Darknet
+    subprocess.run(command, shell=True)
 
-    with open(output_path, "wb") as f:
-        for chunk in response.iter_content(32768):
-            if chunk:
-                f.write(chunk)
+    # Baca hasil deteksi
+    with open(output_file, 'r') as f:
+        results = f.read()
 
-# Download YOLOv3 model
-@st.cache_resource
-def load_yolo():
-    os.makedirs('yolov3', exist_ok=True)
-    print("Directory contents before downloading:")
-    print(os.listdir('yolov3'))
+    # Mengembalikan hasil deteksi
+    return results
 
-    if not os.path.exists('yolov3/yolov3.weights'):
-        download_file_from_google_drive('1-Z_hwylsqXf86t9a8CjvfRgHDs_B_7eh', 'yolov3/yolov3.weights')
-    
-    if not os.path.exists('yolov3/yolov3_custom.cfg'):
-        download_file_from_google_drive('108kFZ9ltANJW7He-Kujzn7f1FYerf2qA', 'yolov3/yolov3_custom.cfg')
-    
-    if not os.path.exists('yolov3/obj.names'):
-        download_file_from_google_drive('1TswYJ6sDv4FUH4TZR8pfifVI6SPjuOyv', 'yolov3/obj.names')
-
-    print("Directory contents after downloading:")
-    print(os.listdir('yolov3'))
-
-    try:
-        net = cv2.dnn.readNet('yolov3/yolov3.weights', 'yolov3/yolov3_custom.cfg')
-    except cv2.error as e:
-        st.error(f"Failed to load YOLO model: {str(e)}")
-        return None, None, None
-    
-    with open('yolov3/obj.names', 'r') as f:
-        classes = [line.strip() for line in f.readlines()]
-
-    layer_names = net.getLayerNames()
-    output_layers = [layer_names[i - 1] for i in net.getUnconnectedOutLayers()]
-
-    return net, classes, output_layers
-
-# Function for object detection
-def detect_objects(net, classes, output_layers, image, allowed_labels):
-    height, width, channels = image.shape
-    blob = cv2.dnn.blobFromImage(image, 0.00392, (416, 416), (0, 0, 0), True, crop=False)
-    net.setInput(blob)
-    outs = net.forward(output_layers)
-
-    class_ids = []
-    confidences = []
-    boxes = []
-    for out in outs:
-        for detection in out:
-            scores = detection[5:]
-            class_id = np.argmax(scores)
-            confidence = scores[class_id]
-            if confidence > 0.5 and classes[class_id] in allowed_labels:
-                center_x = int(detection[0] * width)
-                center_y = int(detection[1] * height)
-                w = int(detection[2] * width)
-                h = int(detection[3] * height)
-
-                x = int(center_x - w / 2)
-                y = int(center_y - h / 2)
-
-                boxes.append([x, y, w, h])
-                confidences.append(float(confidence))
-                class_ids.append(class_id)
-
-    indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.5, 0.4)
-
-    for i in range(len(boxes)):
-        if i in indexes:
-            x, y, w, h = boxes[i]
-            label = f"{classes[class_ids[i]]} {confidences[i]*100:.2f}%"
-            color = (0, 255, 0)  # Green for bounding box
-            text_color = (255, 255, 255)  # White for text
-            cv2.rectangle(image, (x, y), (x + w, y + h), color, 2)
-            cv2.putText(image, label, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, text_color, 2)
-
-    return image
-
-# Function for object detection in video
-def detect_video(net, classes, output_layers, video_path, allowed_labels):
-    cap = cv2.VideoCapture(video_path)
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    output_video_path = 'output.mp4'
-    out = cv2.VideoWriter(output_video_path, fourcc, 20.0, (int(cap.get(3)), int(cap.get(4))))
-
-    while(cap.isOpened()):
-        ret, frame = cap.read()
-        if not ret:
-            break
-
-        detected_frame = detect_objects(net, classes, output_layers, frame, allowed_labels)
-        out.write(detected_frame)
-
-    cap.release()
-    out.release()
-    return output_video_path
-
-# VideoTransformerBase subclass for real-time object detection
-class YOLOv3VideoTransformer(VideoTransformerBase):
-    def __init__(self, net, classes, output_layers):
-        self.net = net
-        self.classes = classes
-        self.output_layers = output_layers
-
-    def transform(self, frame):
-        image = frame.to_ndarray(format="bgr24")
-        detected_image = detect_objects(self.net, self.classes, self.output_layers, image, allowed_labels)
-        return detected_image
-
-# Main function for Streamlit app
+# Fungsi utama untuk Streamlit
 def main():
-    st.title("Object Detection using YOLOv3")
-    st.write("Upload an image, video, or use your webcam for object detection")
+    st.title("Deteksi Objek Menggunakan Darknet YOLOv3")
+    st.write("Unggah gambar untuk mendeteksi objek menggunakan Darknet")
 
-    net, classes, output_layers = load_yolo()
+    # ID file dari Google Drive
+    cfg_file_id = '108kFZ9ltANJW7He-Kujzn7f1FYerf2qA'
+    weights_file_id = '1-Z_hwylsqXf86t9a8CjvfRgHDs_B_7eh'
+    data_file_id = '1iEDj2biLlviApMcAhPIUbcKXFqEHp1_o'
 
-    option = st.selectbox('Choose an option:', ('Image', 'Video', 'Webcam'))
+    # Lokasi file yang akan diunduh
+    cfg_path = 'yolov3_custom.cfg'
+    weights_path = 'yolov3.weights'
+    data_file = 'obj.data'
 
-    if option == 'Image':
-        uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
-        if uploaded_file is not None:
-            file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
-            image = cv2.imdecode(file_bytes, 1)
+    # Unduh file dari Google Drive
+    if not os.path.exists(cfg_path):
+        download_from_google_drive(cfg_file_id, cfg_path)
+    if not os.path.exists(weights_path):
+        download_from_google_drive(weights_file_id, weights_path)
+    if not os.path.exists(data_file):
+        download_from_google_drive(data_file_id, data_file)
 
-            st.image(image, channels="BGR", caption='Uploaded Image.', use_column_width=True)
+    uploaded_file = st.file_uploader("Pilih gambar...", type=["jpg", "jpeg", "png"])
+    if uploaded_file is not None:
+        # Simpan gambar yang diunggah
+        tfile = tempfile.NamedTemporaryFile(delete=False)
+        tfile.write(uploaded_file.read())
+        image_path = tfile.name
 
-            if st.button("Detect Objects"):
-                st.write("Detecting...")
-                detected_image = detect_objects(net, classes, output_layers, image, allowed_labels)
-                st.image(detected_image, channels="BGR", caption='Detected Image.', use_column_width=True)
+        # Jalankan deteksi objek
+        results = detect_objects_with_darknet(image_path, cfg_path, weights_path, data_file)
+        st.text(results)
 
-                # Option to download the detected image
-                is_success, buffer = cv2.imencode(".jpg", detected_image)
-                if is_success:
-                    st.download_button(
-                        label="Download Detected Image",
-                        data=buffer.tobytes(),
-                        file_name="detected_image.jpg",
-                        mime="image/jpeg"
-                    )
-
-                # Option to go back to start
-                if st.button("Back to Start"):
-                    st.experimental_rerun()
-
-    elif option == 'Video':
-        uploaded_file = st.file_uploader("Choose a video...", type=["mp4", "avi", "mov"])
-        if uploaded_file is not None:
-            tfile = tempfile.NamedTemporaryFile(delete=False)
-            tfile.write(uploaded_file.read())
-            video_path = tfile.name
-
-            if st.button("Detect Objects in Video"):
-                st.write("Detecting...")
-                output_video_path = detect_video(net, classes, output_layers, video_path, allowed_labels)
-                st.video(output_video_path)
-                with open(output_video_path, "rb") as file:
-                    st.download_button(
-                        label="Download Detected Video",
-                        data=file,
-                        file_name="output_detection.mp4",
-                        mime="video/mp4"
-                    )
-
-                # Option to go back to start
-                if st.button("Back to Start"):
-                    st.experimental_rerun()
-
-    elif option == 'Webcam':
-        camera_option = st.selectbox('Select Camera:', ('Front Camera', 'Back Camera'))
-        if camera_option == 'Front Camera':
-            selected_device = {'label': 'Front Camera', 'id': 'user'}
-        else:
-            selected_device = {'label': 'Back Camera', 'id': 'environment'}
-
-        webrtc_streamer(
-            key="example",
-            video_transformer_factory=lambda: YOLOv3VideoTransformer(net, classes, output_layers),
-            rtc_configuration=RTCConfiguration(
-                {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
-            ),
-            media_stream_constraints={
-                "video": {
-                    "facingMode": {"exact": selected_device['id']}
-                },
-                "audio": False
-            },
-            async_transform=True
-        )
-
-        if st.button("Back to Start"):
-            st.experimental_rerun()
+        # Tampilkan gambar dengan bounding box
+        image = cv2.imread(image_path)
+        st.image(image, channels="BGR", caption='Gambar dengan Deteksi', use_column_width=True)
 
 if __name__ == "__main__":
     main()
