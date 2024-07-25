@@ -8,28 +8,26 @@ import subprocess
 
 # Fungsi untuk mengunduh file dari Google Drive menggunakan link unduhan langsung
 def download_from_google_drive(drive_url, destination):
-    response = requests.get(drive_url, stream=True)
-    if response.status_code == 200:
-        with open(destination, 'wb') as file:
-            for chunk in response.iter_content(chunk_size=8192):
-                file.write(chunk)
-    else:
-        st.error("Gagal mengunduh file: " + response.reason)
+    try:
+        response = requests.get(drive_url, stream=True)
+        if response.status_code == 200:
+            with open(destination, 'wb') as file:
+                for chunk in response.iter_content(chunk_size=8192):
+                    file.write(chunk)
+        else:
+            st.error(f"Gagal mengunduh file: {response.reason}")
+    except Exception as e:
+        st.error(f"Error: {str(e)}")
 
 # Fungsi untuk mendeteksi objek menggunakan Darknet
 def detect_objects_with_darknet(image_path, config_path, weights_path, data_file):
-    # Simpan hasil deteksi dalam file output.txt
     output_file = 'output.txt'
     command = f"./darknet detector test {data_file} {config_path} {weights_path} {image_path} -dont_show -out {output_file}"
-    
-    # Jalankan Darknet
-    result = subprocess.run(command, shell=True, capture_output=True, text=True)
-    
-    # Baca hasil deteksi dari stdout
-    results = result.stdout
-
-    # Mengembalikan hasil deteksi
-    return results
+    try:
+        result = subprocess.run(command, shell=True, capture_output=True, text=True)
+        return result.stdout
+    except Exception as e:
+        st.error(f"Error running Darknet: {str(e)}")
 
 # Fungsi utama untuk Streamlit
 def main():
@@ -56,7 +54,6 @@ def main():
 
     uploaded_file = st.file_uploader("Pilih gambar...", type=["jpg", "jpeg", "png"])
     if uploaded_file is not None:
-        # Simpan gambar yang diunggah
         tfile = tempfile.NamedTemporaryFile(delete=False)
         tfile.write(uploaded_file.read())
         image_path = tfile.name
