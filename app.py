@@ -1,18 +1,20 @@
+import requests
 import cv2
 import numpy as np
 import os
 import streamlit as st
 import tempfile
 import subprocess
-import gdown
 
-import os
-os.system('python -m pip install --upgrade pip')
-
-# Fungsi untuk mengunduh file dari Google Drive
-def download_from_google_drive(file_id, destination):
-    url = f"https://drive.google.com/uc?id={file_id}"
-    gdown.download(url, destination, quiet=False)
+# Fungsi untuk mengunduh file dari Google Drive menggunakan link unduhan langsung
+def download_from_google_drive(drive_url, destination):
+    response = requests.get(drive_url, stream=True)
+    if response.status_code == 200:
+        with open(destination, 'wb') as file:
+            for chunk in response.iter_content(chunk_size=8192):
+                file.write(chunk)
+    else:
+        st.error("Gagal mengunduh file")
 
 # Fungsi untuk mendeteksi objek menggunakan Darknet
 def detect_objects_with_darknet(image_path, config_path, weights_path, data_file):
@@ -34,10 +36,10 @@ def main():
     st.title("Deteksi Objek Menggunakan Darknet YOLOv3")
     st.write("Unggah gambar untuk mendeteksi objek menggunakan Darknet")
 
-    # ID file dari Google Drive
-    cfg_file_id = '108kFZ9ltANJW7He-Kujzn7f1FYerf2qA'
-    weights_file_id = '1-Z_hwylsqXf86t9a8CjvfRgHDs_B_7eh'
-    data_file_id = '1iEDj2biLlviApMcAhPIUbcKXFqEHp1_o'
+    # Link unduhan langsung
+    cfg_drive_url = 'https://drive.google.com/file/d/108kFZ9ltANJW7He-Kujzn7f1FYerf2qA/view?usp=drive_link'
+    weights_drive_url = 'https://drive.google.com/file/d/1-Z_hwylsqXf86t9a8CjvfRgHDs_B_7eh/view?usp=drive_link'
+    data_drive_url = 'https://drive.google.com/file/d/1iEDj2biLlviApMcAhPIUbcKXFqEHp1_o/view?usp=drive_link'
 
     # Lokasi file yang akan diunduh
     cfg_path = 'yolov3_custom.cfg'
@@ -46,11 +48,11 @@ def main():
 
     # Unduh file dari Google Drive
     if not os.path.exists(cfg_path):
-        download_from_google_drive(cfg_file_id, cfg_path)
+        download_from_google_drive(cfg_drive_url, cfg_path)
     if not os.path.exists(weights_path):
-        download_from_google_drive(weights_file_id, weights_path)
+        download_from_google_drive(weights_drive_url, weights_path)
     if not os.path.exists(data_file):
-        download_from_google_drive(data_file_id, data_file)
+        download_from_google_drive(data_drive_url, data_file)
 
     uploaded_file = st.file_uploader("Pilih gambar...", type=["jpg", "jpeg", "png"])
     if uploaded_file is not None:
