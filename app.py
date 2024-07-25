@@ -23,8 +23,12 @@ def download_from_google_drive(drive_url, destination):
 def detect_objects_with_darknet(image_path, config_path, weights_path, data_file):
     output_file = 'output.txt'
     command = f"./darknet detector test {data_file} {config_path} {weights_path} {image_path} -dont_show -out {output_file}"
+    
     try:
         result = subprocess.run(command, shell=True, capture_output=True, text=True)
+        if result.returncode != 0:
+            st.error(f"Darknet command failed with return code {result.returncode}")
+            st.error(f"stderr: {result.stderr}")
         return result.stdout
     except Exception as e:
         st.error(f"Error running Darknet: {str(e)}")
@@ -60,7 +64,8 @@ def main():
 
         # Jalankan deteksi objek
         results = detect_objects_with_darknet(image_path, cfg_path, weights_path, data_file)
-        st.text(results)
+        if results:
+            st.text(results)
 
         # Tampilkan gambar dengan bounding box
         image = cv2.imread(image_path)
