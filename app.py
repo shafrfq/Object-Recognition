@@ -21,11 +21,10 @@ def detect_objects_with_darknet(image_path, config_path, weights_path, data_file
     command = f"./darknet detector test {data_file} {config_path} {weights_path} {image_path} -dont_show -out {output_file}"
     
     # Jalankan Darknet
-    subprocess.run(command, shell=True)
-
-    # Baca hasil deteksi
-    with open(output_file, 'r') as f:
-        results = f.read()
+    result = subprocess.run(command, shell=True, capture_output=True, text=True)
+    
+    # Baca hasil deteksi dari stdout
+    results = result.stdout
 
     # Mengembalikan hasil deteksi
     return results
