@@ -26,10 +26,10 @@ def load_yolo():
     os.makedirs('yolov3', exist_ok=True)
     # Replace these IDs with your actual file IDs from Google Drive
     download_file_from_gdrive('108628VNNC7mMwemUTvqfKnd6EUZba9xO', 'yolov3/yolov3_custom1_last.weights')
-    download_file_from_gdrive('1W--8QF-IvfX0w95KcM8XgS_8McPmoWbA', 'yolov3/yolov3_custom1.cfg')
+    download_file_from_gdrive('14lRVvgNolVpKqi63WOzThD-UCfzom1IW', 'yolov3/yolov3_custom1.cfg')
     download_file_from_gdrive('1TswYJ6sDv4FUH4TZR8pfifVI6SPjuOyv', 'yolov3/obj.names')
 
-    net = cv2.dnn.readNet('yolov3/yolov3_custom1_last.weights', 'yolov3/yolov3.cfg')
+    net = cv2.dnn.readNet('yolov3/yolov3_custom1_last.weights', 'yolov3/yolov3_custom1.cfg')
     with open('yolov3/obj.names', 'r') as f:
         classes = [line.strip() for line in f.readlines()]
 
