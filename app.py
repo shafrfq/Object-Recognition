@@ -29,8 +29,8 @@ def load_yolo():
     download_file_from_gdrive('1W--8QF-IvfX0w95KcM8XgS_8McPmoWbA', 'yolov3/yolov3_custom1.cfg')
     download_file_from_gdrive('1TswYJ6sDv4FUH4TZR8pfifVI6SPjuOyv', 'yolov3/obj.names')
 
-    net = cv2.dnn.readNet('yolov3/yolov3.weights', 'yolov3/yolov3.cfg')
-    with open('yolov3/coco.names', 'r') as f:
+    net = cv2.dnn.readNet('yolov3/yolov3_custom1_last.weights', 'yolov3/yolov3.cfg')
+    with open('yolov3/obj.names', 'r') as f:
         classes = [line.strip() for line in f.readlines()]
 
     layer_names = net.getLayerNames()
@@ -39,7 +39,7 @@ def load_yolo():
     return net, classes, output_layers
 
 # Definisikan subset label yang diizinkan
-allowed_labels = {"person", "car", "motorbike", "bus", "truck", "bicycle", "traffic light", "parking meter"}
+allowed_labels = {"Bus", "Car", "Motorcycle", "Person", "Truck"}
 
 # Fungsi untuk deteksi objek
 def detect_objects(net, classes, output_layers, image, allowed_labels):
