@@ -25,12 +25,12 @@ def download_file_from_gdrive(file_id, output_path):
 def load_yolo():
     os.makedirs('yolov3', exist_ok=True)
     # Replace these IDs with your actual file IDs from Google Drive
-    download_file_from_gdrive('1-HPD1agrjUSufhXPr5cxfcPpfzIaHl4o', 'yolov3/yolov3_custom1_last_11.weights')
-    download_file_from_gdrive('14lRVvgNolVpKqi63WOzThD-UCfzom1IW', 'yolov3/yolov3_custom1.cfg')
-    download_file_from_gdrive('1TswYJ6sDv4FUH4TZR8pfifVI6SPjuOyv', 'yolov3/obj.names')
+    download_file_from_gdrive('10AY0QTG_XbvcRqONfbAVa-ahJrrA40lw', 'yolov3/yolov3_custom_last.weights')
+    download_file_from_gdrive('1JP4lJn4OwdK04nxZiaC_Ykz0WQLvbn2U', 'yolov3/yolov3_custom.cfg')
+    download_file_from_gdrive('1edWJefoldOZlPKsPwe5ofEY7SewwRvwY', 'yolov3/custom.names')
 
-    net = cv2.dnn.readNet('yolov3/yolov3_custom1_last_11.weights', 'yolov3/yolov3_custom1.cfg')
-    with open('yolov3/obj.names', 'r') as f:
+    net = cv2.dnn.readNet('yolov3/yolov3_custom_last.weights', 'yolov3/yolov3_custom.cfg')
+    with open('yolov3/custom.names', 'r') as f:
         classes = [line.strip() for line in f.readlines()]
 
     layer_names = net.getLayerNames()
