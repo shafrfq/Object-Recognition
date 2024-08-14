@@ -115,7 +115,7 @@ class YOLOv3VideoTransformer(VideoTransformerBase):
 
 # Fungsi utama untuk aplikasi Streamlit
 def main():
-    st.title("Object Recognition using YOLOv3")
+    st.title("Object Detection using YOLOv3")
     st.write("Upload an image, video, or use your webcam for object detection")
 
     net, classes, output_layers = load_yolo()
