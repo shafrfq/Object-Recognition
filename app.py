@@ -24,7 +24,7 @@ def download_file_from_gdrive(file_id, output_path):
 def load_yolo():
     os.makedirs('yolov3', exist_ok=True)
     # Replace these IDs with your actual file IDs from Google Drive
-    download_file_from_gdrive('10S3A0NE9Jvi3ZyqtabJuUwiY9Zxc2UNW', 'yolov3/yolov3_custom_last.weights')
+    download_file_from_gdrive('10AY0QTG_XbvcRqONfbAVa-ahJrrA40lw', 'yolov3/yolov3_custom_last.weights')
     download_file_from_gdrive('1JP4lJn4OwdK04nxZiaC_Ykz0WQLvbn2U', 'yolov3/yolov3_custom.cfg')
     download_file_from_gdrive('1edWJefoldOZlPKsPwe5ofEY7SewwRvwY', 'yolov3/custom.names')
 
@@ -40,13 +40,6 @@ def load_yolo():
 # Definisikan subset label yang diizinkan
 allowed_labels = {"Bus", "Car", "Motorcycle", "Person", "Truck"}
 
-# Membuat warna acak untuk setiap kelas
-colors = {}
-def generate_colors(classes):
-    for class_name in classes:
-        colors[class_name] = [random.randint(0, 255) for _ in range(3)]
-    return colors
-
 # Fungsi untuk deteksi objek
 def detect_objects(net, classes, output_layers, image, allowed_labels):
     height, width, channels = image.shape
@@ -57,6 +50,8 @@ def detect_objects(net, classes, output_layers, image, allowed_labels):
     class_ids = []
     confidences = []
     boxes = []
+    colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (0, 255, 255)]  # Warna berbeda untuk setiap kelas
+
     for out in outs:
         for detection in out:
             scores = detection[5:]
@@ -80,11 +75,11 @@ def detect_objects(net, classes, output_layers, image, allowed_labels):
     for i in range(len(boxes)):
         if i in indexes:
             x, y, w, h = boxes[i]
-            class_name = classes[class_ids[i]]
-            label = f"{class_name} {confidences[i]*100:.2f}%"
-            color = colors[class_name]  # Warna spesifik untuk setiap kelas
+            label = f"{classes[class_ids[i]]} {confidences[i]*100:.2f}%"
+            color = colors[class_ids[i] % len(colors)]  # Pilih warna berdasarkan class_id
+            text_color = (255, 255, 255)  # Putih untuk teks
             cv2.rectangle(image, (x, y), (x + w, y + h), color, 2)
-            cv2.putText(image, label, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+            cv2.putText(image, label, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, text_color, 2)
 
     return image
 
