@@ -40,6 +40,13 @@ def load_yolo():
 # Definisikan subset label yang diizinkan
 allowed_labels = {"Bus", "Car", "Motorcycle", "Person", "Truck"}
 
+# Membuat warna acak untuk setiap kelas
+colors = {}
+def generate_colors(classes):
+    for class_name in classes:
+        colors[class_name] = [random.randint(0, 255) for _ in range(3)]
+    return colors
+
 # Fungsi untuk deteksi objek
 def detect_objects(net, classes, output_layers, image, allowed_labels):
     height, width, channels = image.shape
@@ -50,8 +57,6 @@ def detect_objects(net, classes, output_layers, image, allowed_labels):
     class_ids = []
     confidences = []
     boxes = []
-    colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (0, 255, 255)]  # Warna berbeda untuk setiap kelas
-
     for out in outs:
         for detection in out:
             scores = detection[5:]
@@ -75,11 +80,11 @@ def detect_objects(net, classes, output_layers, image, allowed_labels):
     for i in range(len(boxes)):
         if i in indexes:
             x, y, w, h = boxes[i]
-            label = f"{classes[class_ids[i]]} {confidences[i]*100:.2f}%"
-            color = colors[class_ids[i] % len(colors)]  # Pilih warna berdasarkan class_id
-            text_color = (255, 255, 255)  # Putih untuk teks
+            class_name = classes[class_ids[i]]
+            label = f"{class_name} {confidences[i]*100:.2f}%"
+            color = colors[class_name]  # Warna spesifik untuk setiap kelas
             cv2.rectangle(image, (x, y), (x + w, y + h), color, 2)
-            cv2.putText(image, label, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, text_color, 2)
+            cv2.putText(image, label, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
     return image
 
@@ -89,28 +94,9 @@ def main():
     st.write("Upload an image for object detection")
 
     net, classes, output_layers = load_yolo()
+    generate_colors(classes)  # Generate warna untuk setiap kelas
 
-    # Menambahkan CSS untuk membuat kotak drag and drop berwarna
-    st.markdown("""
-        <style>
-        .drag-and-drop {
-            border: 2px dashed #4CAF50;
-            background-color: #f0f8ff;
-            padding: 20px;
-            text-align: center;
-            font-weight: bold;
-            color: #4CAF50;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-        </style>
-    """, unsafe_allow_html=True)
-
-    # Tampilan kotak drag and drop
-    st.markdown("<div class='drag-and-drop'>Drag and Drop your files here</div>", unsafe_allow_html=True)
-
-    # Input file uploader
-    uploaded_file = st.file_uploader("", type=["jpg", "jpeg", "png"])
+    uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
     if uploaded_file is not None:
         file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
         image = cv2.imdecode(file_bytes, 1)
@@ -136,8 +122,7 @@ def main():
             if st.button("Back to Start"):
                 st.experimental_rerun()
 
-    # Caption di bawah aplikasi
-    st.caption("<div style='text-align: center;'>Copyright (C) Shafira Fimelita Q - 2024</div>", unsafe_allow_html=True)
-
 if __name__ == "__main__":
     main()
+
+st.markdown("<p style='text-align: center;'>Copyright (C) Shafira Fimelita Q - 2024</p>", unsafe_allow_html=True)
