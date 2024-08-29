@@ -90,8 +90,8 @@ def detect_objects(net, classes, output_layers, image, allowed_labels):
 
 # Fungsi utama untuk aplikasi Streamlit
 def main():
-    st.title("Pengenalan Objek dengan YOLOv3")
-    st.write("Upload Gambar Kondisi Jalan Raya")
+    st.title("Pengenalan Objek dengan YOLO")
+    st.write("Pembuatan web sederhana ini sebagai sarana untuk mengevaluasi kemampuan algoritma YOLOv3 dalam mengenali objek di jalan raya")
 
     net, classes, output_layers = load_yolo()
     generate_colors(classes)  # Generate warna untuk setiap kelas
