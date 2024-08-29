@@ -94,9 +94,28 @@ def main():
     st.write("Upload an image for object detection")
 
     net, classes, output_layers = load_yolo()
-    generate_colors(classes)  # Generate warna untuk setiap kelas
 
-    uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+    # Menambahkan CSS untuk membuat kotak drag and drop berwarna
+    st.markdown("""
+        <style>
+        .drag-and-drop {
+            border: 2px dashed #4CAF50;
+            background-color: #f0f8ff;
+            padding: 20px;
+            text-align: center;
+            font-weight: bold;
+            color: #4CAF50;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+    # Tampilan kotak drag and drop
+    st.markdown("<div class='drag-and-drop'>Drag and Drop your files here</div>", unsafe_allow_html=True)
+
+    # Input file uploader
+    uploaded_file = st.file_uploader("", type=["jpg", "jpeg", "png"])
     if uploaded_file is not None:
         file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
         image = cv2.imdecode(file_bytes, 1)
@@ -122,7 +141,8 @@ def main():
             if st.button("Back to Start"):
                 st.experimental_rerun()
 
+    # Caption di bawah aplikasi
+    st.caption("<div style='text-align: center;'>Copyright (C) Shafira Fimelita Q - 2024</div>", unsafe_allow_html=True)
+
 if __name__ == "__main__":
     main()
-
-st.markdown("<p style='text-align: center;'>Copyright (C) Shafira Fimelita Q - 2024</p>", unsafe_allow_html=True)
