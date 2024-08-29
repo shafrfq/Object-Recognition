@@ -124,3 +124,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+st.markdown("<p style='text-align: center;'>Copyright (C) Shafira Fimelita Q - 2024</p>", unsafe_allow_html=True)
