@@ -90,13 +90,13 @@ def detect_objects(net, classes, output_layers, image, allowed_labels):
 
 # Fungsi utama untuk aplikasi Streamlit
 def main():
-    st.title("Object Detection using YOLOv3")
-    st.write("Upload an image for object detection")
+    st.title("Pengenalan Objek dengan YOLOv3")
+    st.write("Upload Gambar Kondisi Jalan Raya")
 
     net, classes, output_layers = load_yolo()
     generate_colors(classes)  # Generate warna untuk setiap kelas
 
-    uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+    uploaded_file = st.file_uploader("Upload Gambarnya Disini...", type=["jpg", "jpeg", "png"])
     if uploaded_file is not None:
         file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
         image = cv2.imdecode(file_bytes, 1)
