@@ -28,7 +28,7 @@ def load_yolo():
     download_file_from_gdrive('1eD6z6IHG0WwDPLJWyB4dJTFJ6-6DKA8E', 'yolov3/yolov3_custom.cfg')
     download_file_from_gdrive('15MziLJaMBGVMayE2t3EqubSJvrPaehN3', 'yolov3/custom.names')
 
-    net = cv2.dnn.readNet('yolov3/yolov3_custom_last.weights', 'yolov3/yolov3_custom.cfg')
+    net = cv2.dnn.readNet('yolov3/yolov3_5k_parameter.weights', 'yolov3/yolov3_custom.cfg')
     with open('yolov3/custom.names', 'r') as f:
         classes = [line.strip() for line in f.readlines()]
 
