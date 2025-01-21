@@ -24,9 +24,9 @@ def download_file_from_gdrive(file_id, output_path):
 def load_yolo():
     os.makedirs('yolov3', exist_ok=True)
     # Replace these IDs with your actual file IDs from Google Drive
-    download_file_from_gdrive('10AY0QTG_XbvcRqONfbAVa-ahJrrA40lw', 'yolov3/yolov3_custom_last.weights')
-    download_file_from_gdrive('1JP4lJn4OwdK04nxZiaC_Ykz0WQLvbn2U', 'yolov3/yolov3_custom.cfg')
-    download_file_from_gdrive('1edWJefoldOZlPKsPwe5ofEY7SewwRvwY', 'yolov3/custom.names')
+    download_file_from_gdrive('1ATv5Z0f8Ph-vpfOOGw92uCutbMbVWWd0', 'yolov3/yolov3_custom_last.weights')
+    download_file_from_gdrive('1eD6z6IHG0WwDPLJWyB4dJTFJ6-6DKA8E', 'yolov3/yolov3_custom.cfg')
+    download_file_from_gdrive('15MziLJaMBGVMayE2t3EqubSJvrPaehN3', 'yolov3/custom.names')
 
     net = cv2.dnn.readNet('yolov3/yolov3_custom_last.weights', 'yolov3/yolov3_custom.cfg')
     with open('yolov3/custom.names', 'r') as f:
